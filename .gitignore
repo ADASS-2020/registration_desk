@@ -39,3 +39,7 @@ venv/
 .DS_Store
 
 Pipfile.lock
+
+.env
+.venv
+*.csv
