@@ -43,8 +43,8 @@ ROLES = (
 event_name = 'ADASS'
 
 instruction = f'Welcome to {event_name}! ' + \
-    'Please use `!register <Full Name>, <email address>` to register.\n' + \
-    'E.g. `!register James Brown, james@brown.com`'
+    'Please use `!register <Full Name>, <registration reference>` to ' + \
+    'register.\nE.g. `!register James Brown, 0123-ABCDEFG-456`'
 
 last_help_msg = None
 help_msg_every = 10         # how many messages between auto help messages
@@ -70,7 +70,7 @@ bot = commands.Bot(
 
 
 def get_input(info):
-    result = re.match(r'([\w\s.-]+)[,|#\W]+(\S+@\S+)', info)
+    result = re.match(r'([\w\s.-]+)[,|#\W]+(\S+)', info)
     if result:
         return result.group(1), result.group(2)
 
@@ -129,6 +129,7 @@ async def register(ctx, *, info):
         try:
             name, ticket_id = get_input(info)
             name = name.strip()
+            ticket_id.strip()
         except Exception:
             name = 'Unknown'
             ticket_id = None
@@ -162,7 +163,7 @@ async def register(ctx, *, info):
             )
 
             await ctx.author.send(
-                f'{ctx.author.mention} Sorry, cannot find the ticket associated to {ticket_id} with name: {name}.\n\nPlease check and make sure:\n1) the name and email matche the full name and email that you used in registering;\n2) seperate you name and email with a ",";\nthen try again.\n\nIf you want a team member to help you, please contact @loc in the channel'     # noqa
+                f'{ctx.author.mention} Sorry, cannot find the ticket associated to {ticket_id} with name: {name}.\n\nPlease check and make sure:\n1) the name and registration reference match your registration details ;\n2) seperate you name and registration reference with a ",";\nthen try again.\n\nIf you want a team member to help you, please contact @loc in the channel'     # noqa
             )
         elif len(roles) > 0:  # if match found
             log_msg = f'SUCCESS: Register user {ctx.author} name={name}, ticket_id={ticket_id} with roles={roles}'      # noqa
@@ -173,11 +174,12 @@ async def register(ctx, *, info):
 
             await ctx.author.send(welcome_msg(ctx.author.mention, roles))
 
-            if len(name) > 32:
-                reg_role = get(ctx.author.guild.roles, name='registration')
-                await ctx.send(f'Sorry {ctx.author.mention}\'s name {name} is too long for Discord to handle. {reg_role.mention} could you contact them and handle it?')     # noqa
-            else:
-                await ctx.author.edit(nick=name)
+            if roles != ['attendee']:
+                if len(name) > 32:
+                    reg_role = get(ctx.author.guild.roles, name='registration')
+                    await ctx.send(f'Sorry {ctx.author.mention}\'s name {name} is too long for Discord to handle. {reg_role.mention} could you contact them and handle it?')     # noqa
+                else:
+                    await ctx.author.edit(nick=name)
 
             await ctx.message.delete()
             update_msg = await ctx.send(f'{name} registered')
