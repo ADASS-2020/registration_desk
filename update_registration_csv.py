@@ -37,6 +37,8 @@ records = wks.get_all_records()
 if os.path.exists(FNAME):
     backup_existing_file(FNAME)
 
+n = 0
+missing = 0
 # The ADASS Reg. spreadsheet has a number of keys which we do not need and
 # some that we need. The bot CSV has the following format
 # name,email,regid,isspeaker,istrainer,isposterauth,isadmin,isloc,ispoc,isvolunteer
@@ -48,4 +50,9 @@ with open(FNAME, 'w', newline='') as csvfile:
     for rec in records[1:]:
         if not rec['Name']:
             continue
+        if not rec['Reference']:
+            missing += 1
+            continue
         writer.writerow({k: fn(rec) for k, fn in FIELDS.items()})
+        n += 1
+print(f'Written {n} records, missing {missing}')
