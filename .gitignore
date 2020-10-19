@@ -43,3 +43,4 @@ Pipfile.lock
 .env
 .venv
 *.csv
+*.csv-*
