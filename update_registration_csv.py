@@ -53,6 +53,11 @@ with open(FNAME, 'w', newline='') as csvfile:
         if not rec['Reference']:
             missing += 1
             continue
+        # Make sure to strip all values!
+        for k in rec:
+            if isinstance(rec[k], str):
+                rec[k] = rec[k].strip()
+
         writer.writerow({k: fn(rec) for k, fn in FIELDS.items()})
         n += 1
 print(f'Written {n} records, missing {missing}')
