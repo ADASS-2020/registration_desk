@@ -174,7 +174,9 @@ async def register(ctx, *, info):
 
             await ctx.author.send(welcome_msg(ctx.author.mention, roles))
 
-            if roles != ['attendee']:
+            # Change username to the person real name
+            # if roles != ['attendee']:
+            if roles:
                 if len(name) > 32:
                     reg_role = get(ctx.author.guild.roles, name='registration')
                     await ctx.send(f'Sorry {ctx.author.mention}\'s name {name} is too long for Discord to handle. {reg_role.mention} could you contact them and handle it?')     # noqa
