@@ -1,5 +1,6 @@
 .data/
 .log/
+.idea/
 
 .pytest_cache/
 woqlClientP.sublime-project
