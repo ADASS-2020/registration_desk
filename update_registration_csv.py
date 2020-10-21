@@ -33,17 +33,17 @@ def backup_existing_file(fname):
 conn = psycopg2.connect(database="pretalx",
                         user="pretalx",
                         password="",
-                        host="localhost",
+                        host="pretalx.adass2020.es",
                         port="5432")
 
 
 sql = """
-SELECT 
-submission_submission.title, 
+SELECT
+submission_submission.title,
 submission_submission.submission_type_id,
-submission_submission.paper_id, 
+submission_submission.paper_id,
 person_user.email
-FROM 
+FROM
 submission_submission,
 person_user
 WHERE
