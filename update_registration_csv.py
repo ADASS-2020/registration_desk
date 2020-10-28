@@ -1,3 +1,4 @@
+from collections import defaultdict
 import csv
 import os
 import shutil
@@ -51,54 +52,66 @@ submission_submission.main_author_id=person_user.id
 AND submission_submission.state not in ('deleted', 'withdrawn')
 ORDER BY email;
 """
+email_typeids = defaultdict(list)
 cur = conn.cursor()
 cur.execute(sql)
 records = cur.fetchall()
-type_ids = [row[1] for row in records]
-authors_emails = [row[3] for row in records]
+for row in records:
+    email_typeids[row[3].lower()].append(row[1])
+conn.close()
 
 gc = gspread.service_account()
 wks = gc.open('ADASS XXX Registrations').sheet1
 records = wks.get_all_records()
+# Skip the header
+records = records[1:]
 
 # Just save a backup of the current file.
 if os.path.exists(FNAME):
     backup_existing_file(FNAME)
 
-n = 0
+# Process all the registration entries in one go and then write to disk. We do
+# this since a person might have >1 contribution and the above SQL query would
+# simply return multiple rows in that case.
 missing = 0
+# email -> record
+people = {}
+for rec in records:
+    if not rec['Name']:
+        continue
+    if not rec['Reference']:
+        missing += 1
+        continue
+
+    # Make sure to strip all values!
+    for k in rec:
+        if isinstance(rec[k], str):
+            rec[k] = rec[k].strip()
+
+    # Here we do things differently based on whether this entry is not in
+    # people or we are seeing it again.
+    email = rec['Email'].lower()
+    if email not in people:
+        # It is a new record!
+        people[email] = rec
+
+    # fetch speakers and posters authors
+    for type_id in email_typeids[email]:
+        if type_id == 13 or type_id == 18:
+            people[email]['POSTER'] = "Yes"
+        else:
+            people[email]['SPEAKER'] = "Yes"
+
 # The ADASS Reg. spreadsheet has a number of keys which we do not need and
 # some that we need. The bot CSV has the following format
 # name,email,regid,isspeaker,istrainer,isposterauth,isadmin,isloc,ispoc,isvolunteer
+n = 0
 with open(FNAME, 'w', newline='') as csvfile:
     writer = csv.DictWriter(csvfile, fieldnames=list(FIELDS.keys()))
     writer.writeheader()
 
-    # Write each row, skipping the first one which is a header of sorts.
-    for rec in records[1:]:
-        if not rec['Name']:
-            continue
-        if not rec['Reference']:
-            missing += 1
-            continue
-
-        # fetch speakers and posters authors
-        if rec['Email'] and rec['Email'] in authors_emails:
-            idx = authors_emails.index(rec['Email'])
-            type_id = type_ids[idx]
-            if type_id == 13 or type_id == 18:
-                rec['POSTER'] = "Yes"
-            else:
-                rec['SPEAKER'] = "Yes"
-
-        # Make sure to strip all values!
-        for k in rec:
-            if isinstance(rec[k], str):
-                rec[k] = rec[k].strip()
-
+    # Write each row
+    for rec in people.values():
         writer.writerow({k: fn(rec) for k, fn in FIELDS.items()})
         n += 1
 print(f'Written {n} records, missing {missing}')
-
-conn.close()
-
