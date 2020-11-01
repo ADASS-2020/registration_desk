@@ -79,10 +79,7 @@ def roles_given(name, ticket_id):
     # check the roles that need to be given to the user
     # return list of roles that need to be given
     with open(os.environ['DATA_PATH'], newline='') as csvfile:
-        hreader = csv.DictReader(csvfile)
-        header = next(hreader).keys()
-
-        datareader = csv.DictReader(csvfile, fieldnames=header,  delimiter=',')
+        datareader = csv.DictReader(csvfile)
         for person in datareader:
             try:
                 if ticket_id.lower() == person.get('ticket_id', '').lower():
