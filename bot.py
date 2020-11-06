@@ -70,7 +70,7 @@ bot = commands.Bot(
 
 
 def get_input(info):
-    result = re.match(r'([\w\s.-]+)[,|#\W]+(\S+)', info)
+    result = re.match(r"([\w\s.-\\']+)[,|#\W]+(\S+)", info)
     if result:
         return result.group(1), result.group(2)
 
