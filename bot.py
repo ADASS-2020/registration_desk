@@ -124,9 +124,9 @@ async def register(ctx, *, info):
 
     if not only_respond_reg or ctx.channel.id == reg_channel_id:
         try:
-            name, ticket_id = get_input(info)
+            name, ticket_id = info.rsplit(',', maxsplit=1)
             name = name.strip()
-            ticket_id.strip()
+            ticket_id = ticket_id.strip()
         except Exception:
             name = 'Unknown'
             ticket_id = None
